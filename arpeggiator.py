@@ -149,15 +149,26 @@ class Arpeggiator:
         
         if pattern not in self.ARPEGGIO_PATTERNS:
             raise ValueError(f"Unknown pattern: {pattern}. Available patterns: {list(self.ARPEGGIO_PATTERNS.keys())}")
-        
+
         for chord_degree, chord_duration in zip(progression, durations):
             # Get the notes for this chord
             chord_notes = self.degree_to_notes(chord_degree)
-            
+
             # Generate the arpeggio pattern
             pattern_func = self.ARPEGGIO_PATTERNS[pattern]
-            if pattern_func == generate_permutation_sequences:
-                self.group_pattern_to_notes()
+            if pattern == 'group':
+                # Updated to call the completed method with required arguments
+                # Defaults to repeating permutations on the current chord for simplicity
+                # You can add kwargs like order='random' or chord_sequence=[list_of_other_chords] if needed
+                print("chord degree: ", chord_degree)
+                print("Chord notes", chord_notes)
+                arpeggio_notes = self.group_pattern_to_notes(
+                    chord_notes=chord_notes,
+                    notes_per_chord=notes_per_chord,
+                    order='lex',  # Default; can be customized (e.g., 'random')
+                    subgroup=None,  # Default; pass a subgroup list if using 'coset'
+                    repeat=True  # Default to repeat on the same chord
+                )
             else:
                 arpeggio_notes = pattern_func(chord_notes, notes_per_chord)
             
@@ -174,9 +185,80 @@ class Arpeggiator:
             # Update the current beat position to account for total duration including spacing
             self.current_beat += chord_duration * spacing_factor
 
-    def group_pattern_to_notes(self):
-        """map the generated patter to current notes"""
-        pass
+    def group_pattern_to_notes(self, chord_notes, notes_per_chord, order='lex', subgroup=None, repeat=True,
+                               chord_sequence=None):
+        """
+        Generate a sequence of chord notes using permutations from group_gen.py.
+
+        This method applies permutations to reorder the notes of a chord (or chord sequence).
+        - For a single chord, permutations can be repeated to fill the required number of notes.
+        - For a sequence of chords, each permutation can be mapped to the next chord.
+        - Permutations are generated for n = len(chord_notes), ensuring they match the chord size.
+        - Returns a list of note names (e.g., ['C4', 'G4', 'E4', ...]) of length `notes_per_chord`.
+
+        Args:
+            chord_notes (list): List of note names for the initial/current chord (e.g., ['C4', 'E4', 'G4']).
+            notes_per_chord (int): Total number of arpeggio notes to generate.
+            order (str, optional): Permutation ordering ('lex', 'random', 'conjugacy', 'coset'). Defaults to 'lex'.
+            subgroup (list, optional): Subgroup for 'coset' ordering (e.g., [(1,2,3), ...]).
+            repeat (bool, optional): If True and no chord_sequence, repeat permutations on chord_notes.
+                                     If False and chord_sequence is provided, map each permutation to the next chord.
+                                     Defaults to True.
+            chord_sequence (list of lists, optional): Additional chords for sequence mapping (e.g., [['E4', 'G4', 'B4'], ...]).
+                                                      If provided and repeat=False, permutations advance across the sequence.
+
+        Returns:
+            list: A list of permuted note names, trimmed to `notes_per_chord` length.
+
+        Raises:
+            ValueError: If parameters are invalid (e.g., mismatched chord sizes).
+        """
+        if not chord_notes:
+            raise ValueError("chord_notes cannot be empty.")
+
+        n = len(chord_notes)
+        all_chords = [chord_notes]
+        print("all chords:", all_chords)
+
+        # Handle chord sequence mode
+        if chord_sequence and not repeat:
+            # Validate that all chords have the same size
+            if any(len(c) != n for c in chord_sequence):
+                raise ValueError("All chords in chord_sequence must have the same length as chord_notes.")
+            all_chords.extend(chord_sequence)
+
+        # Calculate how many permutations are needed (ceiling division to cover notes_per_chord)
+        num_perms_needed = max(1, (notes_per_chord + n - 1) // n)
+        if not repeat and len(all_chords) < num_perms_needed:
+            num_perms_needed = len(all_chords)  # Limit to available chords in sequence mode
+
+        # Generate permutations using group_gen.py
+        perms = generate_permutation_sequences(
+            n=n,
+            length=num_perms_needed,
+            order=order,
+            subgroup=subgroup
+        )
+        if not perms:
+            # Fallback: If no permutations, use the original order repeatedly
+            perms = [(i + 1 for i in range(n))] * num_perms_needed
+        print("perms: ", perms)
+        # Generate the note sequence by applying permutations
+        arpeggio_notes = []
+        for i, perm in enumerate(perms):
+            # Select the current chord (repeat the first or advance in sequence)
+            current_chord = all_chords[i % len(all_chords)] if repeat else all_chords[i]
+            # Convert 1-based permutation to 0-based indices for list access
+            indices = [x - 1 for x in perm]
+            # Reorder the chord notes based on the permutation
+            reordered = [current_chord[idx] for idx in indices if idx < n]  # Safety check
+            arpeggio_notes.extend(reordered)
+            print(perm)
+            print(arpeggio_notes)
+
+        # Trim to exactly notes_per_chord and return
+        return arpeggio_notes[:notes_per_chord]
+
     
     def save(self, filename):
         """Save the generated MIDI file.
@@ -192,25 +274,17 @@ class Arpeggiator:
 
 # Example usage
 if __name__ == "__main__":
-    # Create an arpeggiator in C major at 120 BPM
+    # === Test Case 4: Group Pattern (using permutation logic) ===
+    print("Generating group permutation pattern...")
     arp = Arpeggiator(key='c', octave=4, bpm=120, program=0)
-    
-    # Generate a 2-5-1 progression in C major
-    # 2-5-1 corresponds to Dm-G-C chords in C major
-    progression = [2, 5, 1]  # ii-V-I
-    durations = [1, 1, 1]     # 2 beats, 2 beats, 4 beats
-    
-    # Generate an arpeggio with 8 notes per chord, in an up pattern, with default spacing
-    arp.generate_arpeggio(progression=progression, durations=durations,
-                        notes_per_chord=8, pattern='up', note_duration=1, spacing_factor=1.0)
-    
-    # Add another progression
-    progression = [6, 4, 5, 1]  # vi-IV-V-I (Am-F-G-C in C major)
-    durations = [1, 1, 1, 1]     # 2 beats each for the first three, 4 for the last
-    
-    # This time use an up_down pattern with increased spacing
-    #arp.generate_arpeggio(progression=progression, durations=durations,
-    #                    notes_per_chord=8, pattern='up_down', note_duration=.5, spacing_factor=1.2)
-    
-    # Save the result
-    arp.save('arpeggio_progression.mid') 
+    arp.generate_arpeggio(
+        progression=[2, 5, 1],
+        durations=[1, 1, 1],
+        notes_per_chord=3,
+        pattern='group',
+        note_duration=0.5,
+        spacing_factor=1.0
+    )
+    arp.save('arpeggio_group.mid')
+
+    print("All patterns generated and saved.")
