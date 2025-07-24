@@ -207,12 +207,12 @@ class Arpeggiator:
         """
 
         length = len(chord_sequence)
-        n = len(self.degree_to_notes(chord_sequence[0]))
+        n = 6 # change n manually for now
         # Generate permutations using group_gen.py
 
         perms = generate_permutation_sequences(
             n=n,
-            length=None if repeat else length,
+            length=None,
             order=order,
             subgroup=subgroup
         )
@@ -221,13 +221,14 @@ class Arpeggiator:
             perms = [(i + 1 for i in range(n))] * n
         # Generate the note sequence by applying permutations
         arpeggio_notes = []
+
         for i, perm in enumerate(perms):
             # Select the current chord (repeat the first or advance in sequence)
             current_chord = self.degree_to_notes(chord_sequence[i % len(chord_sequence)])
             # Convert 1-based permutation to 0-based indices for list access
             indices = [x - 1 for x in perm]
             # Reorder the chord notes based on the permutation
-            reordered = [current_chord[idx] for idx in indices if idx < n]  # Safety check
+            reordered = [current_chord[idx % 3] for idx in indices if idx < n]  # CHANGE FOR % NUM OF NOTES IN CHORD
             arpeggio_notes.extend(reordered)
 
 
@@ -252,24 +253,22 @@ if __name__ == "__main__":
     # === Test Case 4: Group Pattern (using permutation logic) ===
     print("Generating group permutation pattern...")
     arp = Arpeggiator(key='c', octave=4, bpm=120, program=0)
+    prog = [6, 4, 3, 6, 6, 4, 3, 2]
+    durs = [1, 1, 1, 1, 1, 1, 1, 1]
+    new_prog = []
+    new_dirs = []
+    for i in range(91):
+        for p in prog:
+            new_prog.append(p)
+            new_dirs.append(1)
     arp.generate_arpeggio(
-        progression=[2, 5, 1, 6, 5, 4, 3, 2],
-        durations=[1, 1, 1, 1, 1, 1, 1, 1],
-        notes_per_chord=3,
+        progression=new_prog,
+        durations=new_dirs,
+        notes_per_chord=6,
         pattern='group',
         note_duration=0.5,
         spacing_factor=1.0
     )
     arp.save('arpeggio_group.mid')
-    arp = Arpeggiator(key='c', octave=4, bpm=120, program=0)
-    arp.generate_arpeggio(
-        progression=[2],
-        durations=[1],
-        notes_per_chord=3,
-        pattern='group',
-        note_duration=0.5,
-        spacing_factor=1.0
-    )
-    arp.save('arpeggio_single.mid')
 
     print("All patterns generated and saved.")
