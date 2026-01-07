@@ -207,7 +207,7 @@ class Arpeggiator:
         """
 
         length = len(chord_sequence)
-        n = 6 # change n manually for now
+        n = 8 # change n manually for now
         # Generate permutations using group_gen.py
 
         perms = generate_permutation_sequences(
@@ -226,6 +226,7 @@ class Arpeggiator:
             # Select the current chord (repeat the first or advance in sequence)
             current_chord = self.degree_to_notes(chord_sequence[i % len(chord_sequence)])
             # Convert 1-based permutation to 0-based indices for list access
+            print(f"curr_permutation: {perm}")
             indices = [x - 1 for x in perm]
             # Reorder the chord notes based on the permutation
             reordered = [current_chord[idx % 3] for idx in indices if idx < n]  # CHANGE FOR % NUM OF NOTES IN CHORD
@@ -253,18 +254,18 @@ if __name__ == "__main__":
     # === Test Case 4: Group Pattern (using permutation logic) ===
     print("Generating group permutation pattern...")
     arp = Arpeggiator(key='c', octave=4, bpm=120, program=0)
-    prog = [6, 4, 3, 6, 6, 4, 3, 2]
-    durs = [1, 1, 1, 1, 1, 1, 1, 1]
+    prog = [6, 4, 3, 5]
+    durs = [1, 1, 1, 1]
     new_prog = []
     new_dirs = []
-    for i in range(91):
+    for i in range(20):
         for p in prog:
             new_prog.append(p)
             new_dirs.append(1)
     arp.generate_arpeggio(
         progression=new_prog,
         durations=new_dirs,
-        notes_per_chord=6,
+        notes_per_chord=8,
         pattern='group',
         note_duration=0.5,
         spacing_factor=1.0
