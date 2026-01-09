@@ -14,7 +14,7 @@ MidiMaxGen allows you to create MIDI arpeggios and sequences by combining:
 ### Requirements
 
 ```bash
-pip install mido sympy
+pip install -r requirements.txt
 ```
 
 ### Install MidiMaxGen
