@@ -1,6 +1,7 @@
 # MidiMaxGen
 
 A Python library for generating MIDI arpeggios using traditional patterns and mathematical group theory.
+Hear an example song here: https://on.soundcloud.com/4Cr7ek6QbdBUSTOf4K
 
 ## Overview
 
