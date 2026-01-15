@@ -113,13 +113,6 @@ ENV/
 env.bak/
 venv.bak/
 
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
 # mkdocs documentation
 /site
 
@@ -154,6 +147,10 @@ ehthumbs.db
 Thumbs.db
 
 # Project specific
+*.txt
 *.mid
 *.midi
+*.mp4
+testing.py
 permutation_sequences.csv
+temp_frames

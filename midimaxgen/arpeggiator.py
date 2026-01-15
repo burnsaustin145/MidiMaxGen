@@ -175,6 +175,56 @@ class Arpeggiator:
         
         return chord.note_names
     
+    def note_to_chord_position(
+        self,
+        note: str,
+        degree: int,
+        chord_type: Optional[str] = None
+    ) -> Optional[int]:
+        """
+        Get the position of a note within a chord (1-indexed).
+        
+        This is the inverse of degree_to_notes(). Given a note and a scale
+        degree, it returns which position (1, 2, 3, etc.) that note occupies
+        in the chord.
+        
+        Args:
+            note: Note name string (e.g., 'A4', 'C5', 'E5')
+            degree: Scale degree (1-7) of the chord to check against
+            chord_type: Override the default chord type (e.g., 'minor7')
+        
+        Returns:
+            Position in chord (1-indexed) if found, None otherwise.
+        
+        Example:
+            >>> arp = Arpeggiator(key='C')
+            >>> # For chord degree 6 (A minor 7 = A, C, E, G):
+            >>> arp.note_to_chord_position('A4', 6, chord_type='minor7')
+            1
+            >>> arp.note_to_chord_position('C5', 6, chord_type='minor7')
+            2
+            >>> arp.note_to_chord_position('E5', 6, chord_type='minor7')
+            3
+            >>> arp.note_to_chord_position('G5', 6, chord_type='minor7')
+            4
+        """
+        # Get the chord notes for this degree
+        chord_notes = self.degree_to_notes(degree, chord_type=chord_type)
+        
+        if not chord_notes:
+            return None
+        
+        # Strip octave from input note for comparison
+        note_pitch = ''.join(c for c in note if not c.isdigit()).lower()
+        
+        # Find matching position in chord
+        for i, chord_note in enumerate(chord_notes):
+            chord_pitch = ''.join(c for c in chord_note if not c.isdigit()).lower()
+            if note_pitch == chord_pitch:
+                return i + 1  # 1-indexed
+        
+        return None
+    
     def generate_arpeggio(
         self,
         progression: List[int],
@@ -257,11 +307,14 @@ class Arpeggiator:
         # Generate the arpeggio notes based on pattern type
         if pattern == 'group':
             # Use group theory pattern
+            # Default permutation_size to 8 if not specified
+            if permutation_size is None:
+                permutation_size = 4
             arpeggio_notes = self._generate_group_pattern(
                 progression=progression,
                 order=order,
                 subgroup=subgroup,
-                permutation_size=permutation_size or 8
+                permutation_size=permutation_size
             )
         else:
             # Use simple pattern
@@ -271,9 +324,10 @@ class Arpeggiator:
                 pattern=pattern,
                 notes_per_chord=notes_per_chord
             )
-        
+        print(arpeggio_notes)
         # Add notes to MIDI file
         for note in arpeggio_notes:
+            print(note)
             self.midi_writer.add_note(
                 note,
                 velocity=velocity,
@@ -350,8 +404,11 @@ class Arpeggiator:
         for i, perm in enumerate(perms):
             # Select chord (cycle through progression)
             degree = progression[i % len(progression)]
-            chord_notes = self.degree_to_notes(degree)
             
+            if permutation_size == 4:
+                chord_notes = self.degree_to_notes(degree, chord_type='minor7')
+            else:
+                chord_notes = self.degree_to_notes(degree)
             # Apply permutation to chord notes
             # Convert 1-based permutation indices to 0-based
             for p in perm:

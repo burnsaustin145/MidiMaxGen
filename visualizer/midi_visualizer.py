@@ -80,43 +80,31 @@ def generate_note_events(
         Tuple of (list of NoteEvents, total frame count)
     """
     # Get permutations
-    perms = generate_permutation_sequences(
-        n=permutation_size,
-        order=order
-    )
     
     # Get chord notes for each degree in progression
-    chord_notes_list = []
-    for degree in progression:
-        chord_notes = arpeggiator.degree_to_notes(degree)
-        chord_notes_list.append(chord_notes)
-    
+    all_notes = arpeggiator._generate_group_pattern(progression=progression,
+                                                    order=order,
+                                                    subgroup=None,
+                                                    permutation_size=permutation_size)
+
     frames_per_beat = calculate_frames_per_beat(bpm)
     frames_per_note = int(frames_per_beat * note_duration_beats)
     
     events = []
     current_frame = 0
-    
-    for perm_idx, perm in enumerate(perms):
-        # Select chord (cycle through progression)
-        chord_notes = chord_notes_list[perm_idx % len(chord_notes_list)]
-        
-        for pos_in_perm, p in enumerate(perm):
-            # p is 1-based index, convert to 0-based
-            circle_idx = (p - 1) % permutation_size
-            note_idx = (p - 1) % len(chord_notes)
-            note_name = chord_notes[note_idx]
-            
-            event = NoteEvent(
-                note_name=note_name,
-                circle_index=circle_idx,
-                start_frame=current_frame,
-                end_frame=current_frame + frames_per_note,
-                permutation_index=perm_idx,
-                position_in_permutation=pos_in_perm
-            )
-            events.append(event)
-            current_frame += frames_per_note
+    print(all_notes)
+    for note in all_notes:
+        idx = arpeggiator.note_to_chord_position(note, 6, 'minor7') - 1
+        event = NoteEvent(
+            note_name=note,
+            circle_index=idx,
+            start_frame=current_frame,
+            end_frame=current_frame + frames_per_note,
+            permutation_index=idx,
+            position_in_permutation=idx
+        )
+        events.append(event)
+        current_frame += frames_per_note
     
     total_frames = current_frame
     return events, total_frames
@@ -379,7 +367,7 @@ def main():
         help="Musical key (default: C)"
     )
     parser.add_argument(
-        "--progression", type=str, default="6",
+        "--progression", type=str, default=(6,),
         help="Chord progression as comma-separated scale degrees (default: 6, 5, 4, 6)"
     )
     parser.add_argument(
@@ -411,7 +399,7 @@ def main():
     args = parser.parse_args()
     
     # Parse progression
-    progression = [int(x.strip()) for x in args.progression.split(",")]
+    progression = args.progression
     
     # Set up paths
     output_path = Path(args.output)

@@ -18,7 +18,6 @@ arp.generate_arpeggio(
     durations=[1], 
     pattern='group',
     order='conjugacy',
-    notes_per_chord=4,
     note_duration=1,
     permutation_size=4
 )

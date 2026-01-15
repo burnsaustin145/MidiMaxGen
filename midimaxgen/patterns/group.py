@@ -123,8 +123,16 @@ def generate_permutation_sequences(
         G = SymmetricGroup(n)
         conjugacy_classes = G.conjugacy_classes()
         sequences = []
-        for conjugacy_class in conjugacy_classes:
-            for perm in conjugacy_class:
+        # Sort conjugacy classes by their first element's tuple representation
+        # to ensure deterministic ordering (sets are unordered in Python)
+        sorted_classes = sorted(
+            conjugacy_classes,
+            key=lambda cls: min(perm_to_tuple(p) for p in cls)
+        )
+        for conjugacy_class in sorted_classes:
+            # Sort permutations within each class for deterministic order
+            sorted_perms = sorted(conjugacy_class, key=lambda p: perm_to_tuple(p))
+            for perm in sorted_perms:
                 sequences.append(perm_to_tuple(perm))
                 
     elif order == 'coset':
