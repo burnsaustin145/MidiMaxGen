@@ -16,6 +16,7 @@ import sys
 import argparse
 import shutil
 import subprocess
+import math
 from pathlib import Path
 from typing import List, Tuple, Optional
 from dataclasses import dataclass
@@ -93,8 +94,11 @@ def generate_note_events(
     events = []
     current_frame = 0
     print(all_notes)
-    for note in all_notes:
-        idx = arpeggiator.note_to_chord_position(note, 6, 'minor7') - 1
+    for note_idx in range(len(all_notes)):
+        curr_cord = progression[math.floor(note_idx // 4) % len(progression)] # div by chord len instead of 4
+        note = all_notes[note_idx]
+        print(note, curr_cord)
+        idx = arpeggiator.note_to_chord_position(note, curr_cord, 'minor7') - 1
         event = NoteEvent(
             note_name=note,
             circle_index=idx,
@@ -367,7 +371,7 @@ def main():
         help="Musical key (default: C)"
     )
     parser.add_argument(
-        "--progression", type=str, default=(6,),
+        "--progression", type=str, default=(6, 5, 4, 6),
         help="Chord progression as comma-separated scale degrees (default: 6, 5, 4, 6)"
     )
     parser.add_argument(
@@ -376,11 +380,11 @@ def main():
         help="Permutation ordering (default: conjugacy)"
     )
     parser.add_argument(
-        "--note-duration", type=float, default=1,
+        "--note-duration", type=float, default=0.25,
         help="Duration of each note in beats (default: 0.25 = sixteenth note)"
     )
     parser.add_argument(
-        "--output", "-o", type=str, default="output_viz_ex_001_slow.mp4",
+        "--output", "-o", type=str, default="output_viz_ex_002.mp4",
         help="Output video file path (default: output.mp4)"
     )
     parser.add_argument(
