@@ -233,10 +233,10 @@ def draw_frame(
     title = f"Permutation Arpeggiator (n={n}, {factorial(n)} permutations)"
     draw.text((20, 20), title, fill=(200, 200, 220), font=font_large)
     
-    # Current permutation
-    if current_permutation:
-        perm_text = f"Current: {current_permutation}"
-        draw.text((20, 70), perm_text, fill=(150, 150, 170), font=font_small)
+    # # Current permutation (doesn't currently work correctly)
+    # if current_permutation:
+    #     perm_text = f"Current: {current_permutation}"
+    #     draw.text((20, 70), perm_text, fill=(150, 150, 170), font=font_small)
     
     # BPM and frame info
     info_text = f"BPM: {bpm} | Frame: {frame_num}/{total_frames}"
