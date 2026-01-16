@@ -44,7 +44,7 @@ arp.generate_arpeggio(
     progression=[1, 5, 6, 4],  # Scale degrees
     durations=[1, 1, 1, 1],    # Duration of each chord in beats
     pattern='up',              # Ascending arpeggio
-    notes_per_chord=8          # 8 notes per chord
+    notes_per_chord=4          # 8 notes per chord
 )
 
 # Save to MIDI file
@@ -71,13 +71,13 @@ Scale degrees represent chords built on each note of the scale:
 
 ```python
 # Ascending: C-E-G-C-E-G-C-E...
-arp.generate_arpeggio([1], [1], pattern='up', notes_per_chord=8)
+arp.generate_arpeggio([1], [1], pattern='up', notes_per_chord=4)
 
 # Descending: G-E-C-G-E-C-G-E...
-arp.generate_arpeggio([1], [1], pattern='down', notes_per_chord=8)
+arp.generate_arpeggio([1], [1], pattern='down', notes_per_chord=4)
 
 # Ping-pong: C-E-G-E-C-E-G-E...
-arp.generate_arpeggio([1], [1], pattern='up_down', notes_per_chord=8)
+arp.generate_arpeggio([1], [1], pattern='up_down', notes_per_chord=4)
 ```
 
 #### Group Theory Patterns
@@ -129,22 +129,6 @@ arp.generate_arpeggio(
     velocity=70
 )
 arp.save('pop_arpeggio.mid')
-```
-
-### Example 2: Sad Minor Progression
-
-```python
-arp = Arpeggiator(key='A', octave=3, bpm=80, program=4)  # Electric Piano
-
-# vi-IV-I-V starting from the relative minor feel
-arp.generate_arpeggio(
-    progression=[6, 4, 1, 5],
-    durations=[2, 2, 2, 2],
-    pattern='up_down',
-    notes_per_chord=12,
-    velocity=50
-)
-arp.save('melancholy.mid')
 ```
 
 ### Example 3: Mathematical Exploration
@@ -237,21 +221,6 @@ group = GroupPattern(n=3, order='conjugacy')
 notes = group.generate(['C4', 'E4', 'G4'])
 ```
 
-## MIDI Program Numbers
-
-Common General MIDI instruments:
-
-| Program | Instrument |
-|---------|------------|
-| 0 | Acoustic Grand Piano |
-| 4 | Electric Piano |
-| 24 | Acoustic Guitar (nylon) |
-| 25 | Acoustic Guitar (steel) |
-| 33 | Electric Bass (finger) |
-| 40 | Violin |
-| 48 | String Ensemble |
-| 73 | Flute |
-| 80 | Synth Lead (square) |
 
 ## Project Structure
 
@@ -269,6 +238,8 @@ midimaxgen/
 │   └── group.py         # Group theory patterns
 └── midi/                # MIDI output
     └── writer.py        # MIDI file writer
+visualizer/
+├── midi_visualizer.py
 ```
 
 ## Mathematical Background
