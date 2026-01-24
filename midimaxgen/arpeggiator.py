@@ -209,9 +209,17 @@ class Arpeggiator:
             4
         """
         # Get the chord notes for this degree
-        chord_notes = self.degree_to_notes(degree, chord_type=chord_type)
+        # chord_notes = self.scale.degree_to_chord(degree, seventh=True)
+        print(degree, chord_type)
+        if chord_type == 7 and degree in {2, 3, 6}:
+            chord_notes = self.degree_to_notes(degree, chord_type='minor7')
+        elif chord_type == 7 and degree in {1, 4}:
+            chord_notes = self.degree_to_notes(degree, chord_type='major7')
+        elif chord_type == 7:
+            chord_notes = self.degree_to_notes(degree, chord_type='dominant7')
         
         if not chord_notes:
+            print("Not chord notes")
             return None
         
         # Strip octave from input note for comparison
@@ -222,7 +230,7 @@ class Arpeggiator:
             chord_pitch = ''.join(c for c in chord_note if not c.isdigit()).lower()
             if note_pitch == chord_pitch:
                 return i + 1  # 1-indexed
-        
+        print("func ended w/ none")
         return None
     
     def generate_arpeggio(
@@ -404,9 +412,13 @@ class Arpeggiator:
         for i, perm in enumerate(perms):
             # Select chord (cycle through progression)
             degree = progression[i % len(progression)]
-            
-            if permutation_size == 4:
+            # FIX THIS
+            if permutation_size == 4 and degree in {2, 3, 6}:
                 chord_notes = self.degree_to_notes(degree, chord_type='minor7')
+            elif permutation_size == 4 and degree in {1, 4}:
+                chord_notes = self.degree_to_notes(degree, chord_type='major7')
+            elif permutation_size == 4:
+                chord_notes = self.degree_to_notes(degree, chord_type='dominant7')
             else:
                 chord_notes = self.degree_to_notes(degree)
             # Apply permutation to chord notes

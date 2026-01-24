@@ -35,6 +35,7 @@ from midimaxgen.patterns.group import generate_permutation_sequences
 WIDTH = 1080
 HEIGHT = 1920
 FPS = 60
+COLOR_PALATE = 'synth'
 BACKGROUND_COLOR = (20, 20, 30)  # Dark blue-gray
 CIRCLE_OFF_COLOR = (60, 60, 80)  # Dim gray-blue
 CIRCLE_ON_COLORS = [
@@ -46,6 +47,21 @@ CIRCLE_ON_COLORS = [
     (100, 255, 255),  # Cyan
     (255, 180, 100),  # Orange
     (180, 100, 255),  # Purple
+]
+CIRCLE_ON_SYNTHWAVE = [
+    # standard
+    (211, 12, 184), 
+    (109, 241, 216),
+    (92, 44, 109), 
+    (93, 164, 166),
+    (184, 174, 200), 
+    (60, 52, 92),
+    # sunset
+    (255, 211, 25), # yellow
+    (255, 144, 31), # orange
+    (255, 41, 117), # reddish
+    (242, 34, 255), # pinkish
+    (140, 30, 255) # purple
 ]
 
 
@@ -93,12 +109,10 @@ def generate_note_events(
     
     events = []
     current_frame = 0
-    print(all_notes)
     for note_idx in range(len(all_notes)):
         curr_cord = progression[math.floor(note_idx // 4) % len(progression)] # div by chord len instead of 4
         note = all_notes[note_idx]
-        print(note, curr_cord)
-        idx = arpeggiator.note_to_chord_position(note, curr_cord, 'minor7') - 1
+        idx = arpeggiator.note_to_chord_position(note, curr_cord, 7) - 1
         event = NoteEvent(
             note_name=note,
             circle_index=idx,
@@ -164,6 +178,7 @@ def draw_frame(
     active_notes = {idx: note for idx, note in active_circles}
     
     # Draw circles - reversed so index 0 (lowest pitch) is at bottom
+    offset_color_inx = 0
     for i in range(n):
         x = center_x
         # Reverse: highest index at top, lowest at bottom
@@ -171,7 +186,13 @@ def draw_frame(
         
         if i in active_indices:
             # Active circle - lit up
-            color = CIRCLE_ON_COLORS[i % len(CIRCLE_ON_COLORS)]
+            if COLOR_PALATE == 'synth':
+                color = CIRCLE_ON_SYNTHWAVE[i % len(CIRCLE_ON_SYNTHWAVE)]
+                offset_color_inx += 1
+                if offset_color_inx == len(CIRCLE_ON_SYNTHWAVE):
+                    offset_color_inx = 0
+            else:
+                color = CIRCLE_ON_COLORS[i % len(CIRCLE_ON_COLORS)]
             # Draw glow effect
             for glow_size in range(3, 0, -1):
                 glow_radius = circle_radius + glow_size * 10
@@ -371,11 +392,11 @@ def main():
         help="Musical key (default: C)"
     )
     parser.add_argument(
-        "--progression", type=str, default=(6, 5, 4, 6),
+        "--progression", type=str, default=(6, 5, 4, 6, 4, 4, 5, 5),
         help="Chord progression as comma-separated scale degrees (default: 6, 5, 4, 6)"
     )
     parser.add_argument(
-        "--order", type=str, default="conjugacy",
+        "--order", type=str, default="lex",
         choices=["lex", "random", "conjugacy", "coset"],
         help="Permutation ordering (default: conjugacy)"
     )
@@ -384,7 +405,7 @@ def main():
         help="Duration of each note in beats (default: 0.25 = sixteenth note)"
     )
     parser.add_argument(
-        "--output", "-o", type=str, default="output_viz_ex_002.mp4",
+        "--output", "-o", type=str, default="output_viz_ex_003_1.mp4",
         help="Output video file path (default: output.mp4)"
     )
     parser.add_argument(

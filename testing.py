@@ -14,12 +14,12 @@ arp = Arpeggiator(key='C', octave=4, bpm=120)
 # arp.save('subgroup_coset_arpeggio.mid')
 
 arp.generate_arpeggio(
-    progression=(6, 5, 4, 6),
-    durations=[1, 1, 1, 1], 
+    progression=(6, 5, 4, 6, 4, 4, 5, 5),
+    durations=[1, 1, 1, 1, 1, 1, 1, 1], 
     pattern='group',
     order='conjugacy',
     note_duration=0.25,
     permutation_size=4
 )
 
-arp.save('viz_ex_002.mid')
+arp.save('viz_ex_003.mid')

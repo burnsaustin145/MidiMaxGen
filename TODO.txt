@@ -5,6 +5,7 @@
 
 ### High Priority
 - [ ] Update visualizer to alter colors over progression changes
+- [ ] Visualizer with maj/min7 chords
 
 ### Pattern Improvements
 - [ ] Configurable chord inversions per pattern
@@ -29,3 +30,5 @@
 - [ ] API reference documentation
 
 ## Notes
+For the visualizer we should probably just go from midi -> visual. This would enable the 'random' pattern to be
+visualized more easily as well as visualization once the real time generation is done
